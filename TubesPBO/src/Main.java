@@ -5,83 +5,113 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Main extends Application {
+    private Map<String, String> userDatabase = new HashMap<>();
 
     @Override
     public void start(Stage primaryStage) {
-        // Header
-        Label title = new Label("Aplikasi Pemesanan Tiket Konser");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2E86C1;");
+        // Login Scene
+        Label loginTitle = new Label("Login Aplikasi Tiket Konser");
+        TextField emailField = new TextField();
+        PasswordField passwordField = new PasswordField();
+        Button loginButton = new Button("Login");
+        Button registerButton = new Button("Daftar");
+        Label loginMessage = new Label();
 
-        // Pilihan Konser
+        VBox loginLayout = new VBox(10, loginTitle, new Label("Email:"), emailField, 
+                                    new Label("Password:"), passwordField, loginButton, registerButton, loginMessage);
+        loginLayout.setPadding(new Insets(20));
+        Scene loginScene = new Scene(loginLayout, 400, 300);
+
+        // Ticket Booking Scene
         Label concertLabel = new Label("Pilih Konser:");
         ComboBox<String> concertComboBox = new ComboBox<>();
         concertComboBox.getItems().addAll("Konser Coldplay", "Konser BTS", "Konser Taylor Swift");
 
-        // Pilihan Kategori
         Label categoryLabel = new Label("Pilih Kategori Tiket:");
         ComboBox<String> categoryComboBox = new ComboBox<>();
         categoryComboBox.getItems().addAll("VIP - Rp 2,000,000", "Gold - Rp 1,500,000", "Silver - Rp 1,000,000");
 
-        // Jumlah Tiket
         Label ticketLabel = new Label("Jumlah Tiket:");
         TextField ticketField = new TextField();
-        ticketField.setPromptText("Masukkan jumlah tiket");
 
-        // Harga Per Kategori
-        Label priceLabel = new Label("Harga Kategori: ");
-
-        // Total Harga
-        Label totalLabel = new Label("Total Harga: Rp 0");
-
-        // Tombol Beli
         Button buyButton = new Button("Beli Tiket");
-        buyButton.setStyle("-fx-background-color: #1ABC9C; -fx-text-fill: white; -fx-font-weight: bold;");
-        buyButton.setOnAction(e -> {
-            try {
-                // Mengambil jumlah tiket
-                int jumlah = Integer.parseInt(ticketField.getText());
-                int hargaPerTiket = 0;
+        VBox ticketLayout = new VBox(15, concertLabel, concertComboBox, categoryLabel, categoryComboBox, 
+                                     ticketLabel, ticketField, buyButton);
+        ticketLayout.setPadding(new Insets(20));
+        Scene ticketScene = new Scene(ticketLayout, 450, 450);
 
-                // Menentukan harga berdasarkan kategori
-                String selectedCategory = categoryComboBox.getValue();
-                if (selectedCategory != null) {
-                    if (selectedCategory.contains("VIP")) hargaPerTiket = 2000000;
-                    else if (selectedCategory.contains("Gold")) hargaPerTiket = 1500000;
-                    else if (selectedCategory.contains("Silver")) hargaPerTiket = 1000000;
-                }
+        // Payment Method Scene
+        Label paymentTitle = new Label("Metode Pembayaran");
+        RadioButton mBankingPayment = new RadioButton("M-Banking");
+        RadioButton eWalletPayment = new RadioButton("E-Wallet");
+        ToggleGroup paymentGroup = new ToggleGroup();
+        mBankingPayment.setToggleGroup(paymentGroup);
+        eWalletPayment.setToggleGroup(paymentGroup);
+        Button confirmPaymentMethod = new Button("Pilih Metode");
 
-                // Mengambil pilihan konser
-                String selectedConcert = concertComboBox.getValue();
+        VBox paymentLayout = new VBox(15, paymentTitle, mBankingPayment, eWalletPayment, confirmPaymentMethod);
+        paymentLayout.setPadding(new Insets(20));
+        Scene paymentScene = new Scene(paymentLayout, 400, 300);
 
-                // Validasi input
-                if (selectedConcert == null || selectedCategory == null) {
-                    totalLabel.setText("Pilih konser dan kategori terlebih dahulu!");
+        // Sub-options Scene
+        Label subOptionTitle = new Label("Pilih Penyedia Pembayaran");
+        ComboBox<String> subOptionCombo = new ComboBox<>();
+        Button confirmSubOption = new Button("Konfirmasi");
+
+        VBox subOptionLayout = new VBox(15, subOptionTitle, subOptionCombo, confirmSubOption);
+        subOptionLayout.setPadding(new Insets(20));
+        Scene subOptionScene = new Scene(subOptionLayout, 400, 300);
+
+        // Virtual Account Scene
+        Label vaTitle = new Label("Nomor Virtual Account");
+        TextArea vaDetails = new TextArea();
+        vaDetails.setEditable(false);
+        Button backToTicketScene = new Button("Kembali ke Pemesanan");
+        backToTicketScene.setOnAction(e -> primaryStage.setScene(ticketScene));
+
+        VBox vaLayout = new VBox(15, vaTitle, vaDetails, backToTicketScene);
+        vaLayout.setPadding(new Insets(20));
+        Scene vaScene = new Scene(vaLayout, 400, 300);
+
+        // Navigation Logic
+        buyButton.setOnAction(e -> primaryStage.setScene(paymentScene));
+
+        confirmPaymentMethod.setOnAction(e -> {
+            RadioButton selectedPayment = (RadioButton) paymentGroup.getSelectedToggle();
+            if (selectedPayment != null) {
+                String method = selectedPayment.getText();
+                subOptionTitle.setText("Pilih Penyedia " + method);
+
+                if (method.equals("M-Banking")) {
+                    subOptionCombo.getItems().setAll("Bank BCA", "Bank Mandiri", "Bank BNI", "Bank BRI");
                 } else {
-                    // Hitung total harga
-                    int total = jumlah * hargaPerTiket;
-                    totalLabel.setText("Total Harga: Rp " + total);
+                    subOptionCombo.getItems().setAll("ShopeePay", "GoPay", "Dana", "Ovo");
                 }
-            } catch (NumberFormatException ex) {
-                totalLabel.setText("Masukkan jumlah tiket yang tidak valid.");
+
+                primaryStage.setScene(subOptionScene);
             }
         });
 
-        // Layout
-        VBox layout = new VBox(15);
-        layout.setPadding(new Insets(20));
-        layout.getChildren().addAll(
-                title,
-                concertLabel, concertComboBox,
-                categoryLabel, categoryComboBox,
-                ticketLabel, ticketField,
-                buyButton, priceLabel, totalLabel
-        );
+        confirmSubOption.setOnAction(e -> {
+            String subOption = subOptionCombo.getValue();
+            if (subOption != null) {
+                String vaNumber = "VA-" + (int) (Math.random() * 1000000000);
+                vaDetails.setText("Penyedia: " + subOption + "\nNomor Virtual Account: " + vaNumber);
+                primaryStage.setScene(vaScene);
+            }
+        });
 
-        // Scene dan Stage
-        Scene scene = new Scene(layout, 450, 450);
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("Aplikasi Tiket Konser");
+        loginButton.setOnAction(e -> {
+            primaryStage.setScene(ticketScene);
+            primaryStage.setTitle("Aplikasi Pemesanan Tiket Konser");
+        });
+
+        primaryStage.setScene(loginScene);
+        primaryStage.setTitle("Login Aplikasi Tiket Konser");
         primaryStage.show();
     }
 

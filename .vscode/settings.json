@@ -1,6 +1,6 @@
 {
     "java.project.sourcePaths": [
-        "TubesPBO/src"
+        "src"
     ],
     "java.project.referencedLibraries": [
         "c:\\javafx-sdk-23.0.1\\lib\\javafx.base.jar",
